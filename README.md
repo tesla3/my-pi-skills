@@ -25,7 +25,7 @@ Or add to `~/.pi/settings.json`:
 
 | Skill | Description |
 |-------|-------------|
-| *none yet* | |
+| [hn-distill](hn-distill/) | Fetch and distill insights from Hacker News threads. Given an HN URL or item ID, fetches the full comment tree and produces an opinionated analysis with key insights, sentiment, and verdict. |
 
 ## Structure
 

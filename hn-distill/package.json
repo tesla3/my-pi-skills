@@ -1,0 +1,7 @@
+{
+	"name": "hn-distill",
+	"version": "1.0.0",
+	"type": "module",
+	"description": "Fetch Hacker News threads as structured text for LLM analysis",
+	"license": "MIT"
+}
