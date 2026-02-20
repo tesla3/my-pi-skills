@@ -11,6 +11,40 @@ Fetch a Hacker News thread and distill it into an opinionated insight summary.
 
 None beyond Node.js (uses `curl` for HTTP).
 
+## Analysis guidelines
+
+### Source critique
+
+- **Analyze the article before the thread.** Identify core claims, evidence, and structural weaknesses.
+- **Test the source's evidence against its own thesis.** Does the example actually demonstrate the claim, or reveal a confound? If the evidence undermines the thesis, lead with that.
+- **Separate claims when the source bundles them.** Evaluate each independently — the thread may validate one and demolish the other.
+
+### Thread analysis
+
+- **Identify the important claims and push hard on them.** Find the 2-3 that matter most and stress-test: what evidence supports them, what would falsify them, do the asserters have standing?
+- **Separate facts from judgment.** Distinguish verifiable claims (data, direct experience, citations) from opinion, projection, or vibes.
+- **Be opinionated, not balanced.** When two camps argue past each other, check if they're making the same mistake in opposite directions — name the shared fallacy.
+- **Insights must be non-obvious.** Name the *dynamic*, not the *state* (what changed, what's accelerating, what mechanism appeared).
+- **Count signal, not volume.** One well-argued contrarian comment outweighs 10 "+1" replies.
+- **Identify the framework** if the thread converges on one.
+- **Note demographic splits.** Flag astroturf/spam.
+
+### Quoting and attribution
+
+- **Quote with HN usernames.**
+- **Interrogate celebrated comments.** Ask *why hasn't anyone done this already?* — the answer usually reveals structural barriers the rant ignores.
+- **Elevate the star comment** when one clearly outranks the rest. Don't force it.
+
+### Synthesis
+
+- **Verdict and "What the Thread Misses" must go beyond the thread.** Name what the thread circles but never states. Identify blind spots. Flag meta-ironies (e.g., an AI article showing AI writing tells).
+
+### Scope
+
+- 5-10 insights, 600-1500 words. Scale to thread complexity. Every sentence earns its place.
+
+---
+
 ## Step 1: Fetch the thread
 
 ```bash
@@ -24,9 +58,11 @@ Outputs a plain-text tree to stdout with metadata header and indented comments. 
 
 For very large threads (500+ comments), use `--max` to keep output within context limits.
 
-## Step 2: Fetch the linked article (if any)
+## Step 2: Fetch source materials
 
-If the thread links to an external article (shown as `ARTICLE_URL:` in fetch output), fetch it for context using the brave-search skill's `content.js`:
+### The linked article
+
+If the thread links to an external article (shown as `ARTICLE_URL:` in fetch output), fetch it using the brave-search skill's `content.js`:
 
 ```bash
 ~/.pi/agent/skills/pi-skills/brave-search/content.js <article-url>
@@ -38,7 +74,11 @@ If that fails or is unavailable, search for the article:
 ~/.pi/agent/skills/pi-skills/brave-search/search.js "<article title>" --content -n 1
 ```
 
-Skip this step for Ask HN / Show HN threads with no external link.
+Skip this for Ask HN / Show HN threads with no external link.
+
+### High-signal links from comments
+
+Scan the thread for links cited as evidence for or against key claims — data, graphs, related threads, primary sources. Fetch these with `content.js` when they'd materially strengthen your analysis. Skip product plugs, tangential references, and anything that's just color. Typical threads have 0-3 links worth chasing; don't fetch more than 5.
 
 ## Step 3: Distill
 
@@ -57,11 +97,19 @@ Analyze the thread and produce a structured markdown distillation. Follow this t
 
 **1. <Insight title>**
 
-<2-4 sentences. Include the sharpest quote from the thread when available.>
+<Analysis. Include the sharpest quote with HN username attribution.>
 
 **2. <Insight title>**
 
 ...
+
+### Common Pushbacks
+
+| Pushback | Quality | Note |
+|----------|---------|------|
+| ... | Strong / Medium / Weak / Misapplied | ... |
+
+(Include when the thread has a clear debate axis. Omit for threads without structured disagreement.)
 
 ### What the Thread Misses
 
@@ -69,20 +117,13 @@ Analyze the thread and produce a structured markdown distillation. Follow this t
 
 ### Verdict
 
-<2-3 sentence synthesis. What's the real takeaway?>
+<2-4 sentences. Must name something the thread circles but never states.>
 ```
 
-### Analysis guidelines
+## Step 4: Review your analysis
 
-- **Be opinionated, not balanced.** Identify what the thread actually concluded, not "some said X, others said Y."
-- **Prioritize novel insights** over restatements of conventional wisdom.
-- **Quote the sharpest comments** — the ones that crystallize a point better than paraphrase.
-- **Flag astroturf/spam** if you spot planted comments (patent spam, product plugs, etc.).
-- **Note demographic splits** when different groups of commenters talk past each other.
-- **Count signal, not volume.** A single well-argued contrarian comment matters more than 10 "+1" replies.
-- **Identify the framework** if the thread converges on one (e.g., "lethal trifecta," "solution looking for a problem").
-- Typical output: 5-10 insights, 300-800 words total.
+Review your analysis CRITICALLY. Be thorough, tough, and fair. Update your analysis if needed.
 
-## Step 4: Save to disk
+## Step 5: Save to disk
 
 Save the distillation as a markdown file. Default location depends on project context — follow the user's conventions for where research files go.
