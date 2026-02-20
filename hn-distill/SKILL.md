@@ -120,9 +120,17 @@ Analyze the thread and produce a structured markdown distillation. Follow this t
 <2-4 sentences. Must name something the thread circles but never states.>
 ```
 
-## Step 4: Review your analysis
+## Step 4: Review your analysis — MUST NOT SKIP
 
-Review your analysis CRITICALLY. Be thorough, tough, and fair. Update your analysis if needed.
+**You MUST review your analysis before saving.** Do not go straight from writing to saving. Stop here and re-read what you wrote.
+
+Review CRITICALLY. Be thorough, tough, and fair. Ask:
+- Did I actually test claims against evidence, or just summarize?
+- Are my "non-obvious" insights actually non-obvious?
+- Does the verdict go beyond restating the thread?
+- Did I name dynamics or just describe states?
+
+Update your analysis if needed. This step exists because you will skip it if it isn't forced.
 
 ## Step 5: Save to disk
 
