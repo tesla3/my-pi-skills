@@ -1,4 +1,4 @@
-# pi-skills
+# my-pi-skills
 
 Custom [pi](https://github.com/nicholasgasior/pi-coding-agent) skills.
 
