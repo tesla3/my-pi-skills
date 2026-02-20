@@ -45,7 +45,30 @@ None beyond Node.js (uses `curl` for HTTP).
 
 ---
 
-## Step 1: Fetch the thread
+## Step 1: Fetch the original article
+
+Get the article URL from the HN API item endpoint, then fetch and read the article before the thread.
+
+```bash
+# Get the article URL from HN API (extract the "url" field)
+curl -s "https://hacker-news.firebaseio.com/v0/item/<id>.json" | jq -r '.url // empty'
+```
+
+Fetch the article using the brave-search skill's `content.js`:
+
+```bash
+~/.pi/agent/skills/pi-skills/brave-search/content.js <article-url>
+```
+
+If that fails or is unavailable, search for the article:
+
+```bash
+~/.pi/agent/skills/pi-skills/brave-search/search.js "<article title>" --content -n 1
+```
+
+Skip this step for Ask HN / Show HN threads with no external link.
+
+## Step 2: Fetch the thread
 
 ```bash
 {baseDir}/fetch.js <url-or-id>              # full thread
@@ -58,29 +81,11 @@ Outputs a plain-text tree to stdout with metadata header and indented comments. 
 
 For very large threads (500+ comments), use `--max` to keep output within context limits.
 
-## Step 2: Fetch source materials
-
-### The linked article
-
-If the thread links to an external article (shown as `ARTICLE_URL:` in fetch output), fetch it using the brave-search skill's `content.js`:
-
-```bash
-~/.pi/agent/skills/pi-skills/brave-search/content.js <article-url>
-```
-
-If that fails or is unavailable, search for the article:
-
-```bash
-~/.pi/agent/skills/pi-skills/brave-search/search.js "<article title>" --content -n 1
-```
-
-Skip this for Ask HN / Show HN threads with no external link.
-
-### High-signal links from comments
+## Step 3: Fetch high-signal links from comments
 
 Scan the thread for links cited as evidence for or against key claims — data, graphs, related threads, primary sources. Fetch these with `content.js` when they'd materially strengthen your analysis. Skip product plugs, tangential references, and anything that's just color. Typical threads have 0-3 links worth chasing; don't fetch more than 5.
 
-## Step 3: Distill
+## Step 4: Analysis and Distill
 
 Analyze the thread and produce a structured markdown distillation. Follow this template:
 
@@ -120,7 +125,7 @@ Analyze the thread and produce a structured markdown distillation. Follow this t
 <2-4 sentences. Must name something the thread circles but never states.>
 ```
 
-## Step 4: Review your analysis — MUST NOT SKIP
+## Step 5: Review your analysis — MUST NOT SKIP
 
 **You MUST review your analysis before saving.** Do not go straight from writing to saving. Stop here and re-read what you wrote.
 
@@ -132,6 +137,6 @@ Review CRITICALLY. Be thorough, tough, and fair. Ask:
 
 Update your analysis if needed. This step exists because you will skip it if it isn't forced.
 
-## Step 5: Save to disk
+## Step 6: Save to disk
 
 Save the distillation as a markdown file. Default location depends on project context — follow the user's conventions for where research files go.
