@@ -1,6 +1,6 @@
 # my-pi-skills
 
-Custom [pi](https://github.com/nicholasgasior/pi-coding-agent) skills.
+Custom [pi](https://github.com/badlogic/pi-coding-agent) skills.
 
 Each subdirectory is a self-contained skill following the [Agent Skills specification](https://agentskills.io/specification).
 
@@ -10,14 +10,14 @@ Add to pi's global skills directory:
 
 ```bash
 # Symlink into global skills
-ln -s ~/pi-skills ~/.pi/agent/skills/pi-skills-custom
+ln -s ~/pi-place/my-pi-skills ~/.pi/agent/skills/my-pi-skills
 ```
 
 Or add to `~/.pi/settings.json`:
 
 ```json
 {
-  "skills": ["~/pi-skills"]
+  "skills": ["~/pi-place/my-pi-skills"]
 }
 ```
 
