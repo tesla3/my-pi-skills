@@ -37,6 +37,8 @@ if (countryVal) country = countryVal.toUpperCase();
 
 freshness = extractOpt("--freshness");
 
+const goggles = extractOpt("--goggles");
+
 const query = args.join(" ");
 
 if (!query) {
@@ -50,10 +52,17 @@ if (!query) {
 	console.log("  --threshold <mode>  Relevance filter: strict|balanced|lenient|disabled (default: balanced)");
 	console.log("  --country <code>    Two-letter country code (default: US)");
 	console.log("  --freshness <p>     Filter by time: pd (day), pw (week), pm (month), py (year)");
+	console.log("  --goggles <rules>   Custom re-ranking rules (newline-separated)");
+	console.log("                      $boost=N,site=domain.com  — boost domain (N=1-10)");
+	console.log("                      $downrank=N,site=domain.com — lower ranking");
+	console.log("                      $discard,site=domain.com — remove domain");
+	console.log("                      $discard (alone) — discard all not explicitly boosted");
 	console.log("\nPresets:");
 	console.log('  Quick fact:    llm-context.js "query" --tokens 2048 --urls 3');
 	console.log('  Standard:      llm-context.js "query"');
 	console.log('  Deep research: llm-context.js "query" --tokens 16384 --urls 30 --count 50');
+	console.log('  Docs only:    llm-context.js "query" --goggles \'$discard\\n$boost=5,site=docs.python.org\'');
+	console.log('  No spam:      llm-context.js "query" --goggles \'$discard,site=w3schools.com\'');
 	console.log("\nEnvironment:");
 	console.log("  BRAVE_API_KEY    Required. Your Brave Search API key.");
 	process.exit(1);
@@ -78,6 +87,11 @@ try {
 
 	if (freshness) {
 		params.append("freshness", freshness);
+	}
+
+	if (goggles) {
+		// Replace literal \n with actual newlines for shell convenience
+		params.append("goggles", goggles.replace(/\\n/g, "\n"));
 	}
 
 	const url = `https://api.search.brave.com/res/v1/llm/context?${params.toString()}`;

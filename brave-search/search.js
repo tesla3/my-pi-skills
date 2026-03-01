@@ -65,6 +65,7 @@ async function fetchBraveResults(query, numResults, country, freshness) {
 		q: query,
 		count: Math.min(numResults, 20).toString(),
 		country: country,
+		extra_snippets: "true",
 	});
 
 	if (freshness) {
@@ -100,6 +101,7 @@ async function fetchBraveResults(query, numResults, country, freshness) {
 				link: result.url || "",
 				snippet: result.description || "",
 				age: result.age || result.page_age || "",
+				extraSnippets: result.extra_snippets || [],
 			});
 		}
 	}
@@ -187,6 +189,9 @@ try {
 			console.log(`Age: ${r.age}`);
 		}
 		console.log(`Snippet: ${r.snippet}`);
+		if (r.extraSnippets.length > 0) {
+			console.log(`Extra Snippets:\n${r.extraSnippets.join("\n")}`);
+		}
 		if (r.content) {
 			console.log(`Content:\n${r.content}`);
 		}
