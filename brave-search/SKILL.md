@@ -88,22 +88,47 @@ Keep inline goggles to **5-15 rules**. URL encoding of many rules can hit HTTP U
 
 ### Pre-Built Hosted Goggles
 
-These are Brave's official goggles, already registered and ready to use. Pass the URL directly:
+Registered goggles hosted on GitHub — pass the URL directly. Use these for broad filtering (100+ rules) that can't fit inline. Only registered goggles work; arbitrary URLs are silently ignored. Cannot combine a hosted URL with inline rules — use one or the other.
+
+#### Brave Official
 
 ```bash
-# Remove ~170 StackOverflow/GitHub copycat/scraper sites
+# Remove 189 StackOverflow/GitHub copycat/scraper sites — USE FOR ALL PROGRAMMING QUERIES
 {baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/copycats_removal.goggle'
+
+# Boost 6,238 domains popular on Hacker News — great for tech/research
+{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/hacker_news.goggle'
+
+# Boost 1,465 tech blog domains
+{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/tech_blogs.goggle'
 
 # Remove all Pinterest domains
 {baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/no_pinterest.goggle'
-
-# Boost ~3,000 domains popular on Hacker News
-{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/hacker_news.goggle'
 ```
 
-Use hosted goggles when you need broad filtering (100+ rules). They overcome the inline URL length limit. Only goggles registered with Brave work — arbitrary URLs are silently ignored.
+#### Community (registered & tested)
 
-**Note:** You cannot combine a hosted URL with inline rules in the same `--goggles` parameter. Use either a hosted URL OR inline rules, not both.
+```bash
+# Boost 45 official documentation sites (Python, Rust, JS, Go, etc.)
+{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/banana-boost/banana-boost/master/boost-official-docs.goggle'
+
+# Boost 7,835 curated quality domains (broad quality filter)
+{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/banana-boost/banana-boost/master/banana-boost.goggle'
+
+# Boost 3,896 infosec/netsec community domains (from r/netsec signals)
+{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/forcesunseen/netsec-goggle/master/netsec.goggle'
+```
+
+#### Which Hosted Goggle to Use
+
+| Query type | Recommended hosted goggle |
+|-----------|--------------------------|
+| Programming / code | `copycats_removal` (discard scrapers) |
+| Tech research / general | `hacker_news` (boost quality tech domains) |
+| Official docs lookup | `boost-official-docs` (boost 45 doc sites) |
+| Security / infosec | `netsec` (boost r/netsec community) |
+| Broad quality improvement | `banana-boost` (7,835 curated domains) |
+| Image-heavy / design | `no_pinterest` (remove Pinterest noise) |
 
 ### Inline Goggles Recipes
 
