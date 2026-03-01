@@ -94,7 +94,7 @@ if (!query) {
 	console.log("  --country <code>    Two-letter country code (default: US)");
 	console.log("  --freshness <p>     Filter by time: pd (day), pw (week), pm (month), py (year)");
 	console.log("  --preset <name>     Built-in goggles: code, research, docs");
-	console.log("  --goggles <rules>   Custom inline re-ranking rules (newline-separated)");
+	console.log("  --goggles <val>     Hosted goggle URL or inline rules (newline-separated)");
 	console.log("\nPresets:");
 	console.log("  code      Discard SEO farms (w3schools, geeksforgeeks, etc.), boost SO + /docs/");
 	console.log("  research  Boost arxiv, ACM, HN, lobste.rs; downrank medium; discard SEO farms");
@@ -125,13 +125,8 @@ let resolvedGoggles = null;
 if (preset) {
 	resolvedGoggles = PRESETS[preset];
 } else if (goggles) {
-	if (goggles.startsWith("http")) {
-		console.error("Error: The LLM Context API does not support hosted goggle URLs.");
-		console.error("Use --preset for built-in filters, or --goggles with inline rules.");
-		console.error("Hosted goggles only work with search.js (web search API).");
-		process.exit(1);
-	}
-	resolvedGoggles = goggles.replace(/\\n/g, "\n");
+	// Both hosted URLs and inline rules work via the 'goggles' param
+	resolvedGoggles = goggles.startsWith("http") ? goggles : goggles.replace(/\\n/g, "\n");
 }
 
 const apiKey = process.env.BRAVE_API_KEY;

@@ -46,27 +46,31 @@ Use `--preset` for common filtering patterns. These are built-in inline goggles 
 - `--country <code>` — Two-letter country code (default: US)
 - `--freshness <period>` — `pd` (day), `pw` (week), `pm` (month), `py` (year)
 - `--preset <name>` — Built-in goggles: `code`, `research`, `docs`
-- `--goggles <rules>` — Custom inline rules (use `\n` between rules). Cannot combine with `--preset`.
+- `--goggles <val>` — Hosted goggle URL or custom inline rules (use `\n` between rules). Cannot combine with `--preset`.
 
-### Custom Goggles (inline rules)
+### Custom Goggles
 
-For per-query customization beyond presets. See [goggles-reference.md](goggles-reference.md) for full syntax and domain lists.
+For per-query customization beyond presets. See [goggles-reference.md](goggles-reference.md) for full syntax, hosted goggles catalog, and domain lists.
 
 ```bash
-# Discard specific domains
+# Hosted goggle (189 copycat scrapers removed)
+{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/copycats_removal.goggle'
+
+# Hosted goggle (boost 6,238 HN-popular domains)
+{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/hacker_news.goggle'
+
+# Inline: discard specific domains
 {baseDir}/llm-context.js "query" --goggles '$discard,site=pinterest.com\n$discard,site=quora.com'
 
-# Allow-list pattern (discard everything, then whitelist)
+# Inline: allow-list pattern
 {baseDir}/llm-context.js "query" --goggles '$discard\n$boost=5,site=arxiv.org\n$boost=1,site=github.com'
 ```
 
 **Key rules:** `$boost=N,site=domain` (N=1-10), `$downrank=N,site=domain`, `$discard,site=domain`, `$discard` (discard all unmatched). Precedence: discard > boost > downrank.
 
-**Note:** The LLM Context API only supports inline rules. Hosted goggle URLs are silently ignored. Use `search.js` with `--goggles <url>` if you need hosted goggles.
-
 ## Search
 
-Returns URLs, snippets, and extra snippets. Supports hosted goggles via `--goggles <url>`.
+Returns URLs, snippets, and extra snippets.
 
 ```bash
 {baseDir}/search.js "query"                          # 5 results
@@ -78,7 +82,7 @@ Returns URLs, snippets, and extra snippets. Supports hosted goggles via `--goggl
 
 Options: `-n <num>`, `--content`, `--country <code>`, `--freshness <period>`, `--goggles <url|rules>`
 
-Hosted goggles (pass URL to `--goggles`) only work with `search.js`, not `llm-context.js`. See [goggles-reference.md](goggles-reference.md) for available hosted goggles.
+Both hosted goggles (pass URL) and inline rules work with `--goggles`. See [goggles-reference.md](goggles-reference.md) for hosted goggles catalog.
 
 ## Extract Page Content
 

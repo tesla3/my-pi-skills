@@ -41,9 +41,9 @@ $boost=1,site=stackoverflow.com      # keep at natural ranking
 
 Inline goggles: keep to ~15 rules max (URL encoding length limits). For broad filtering, use presets or hosted goggles.
 
-## Hosted Goggles (search.js only)
+## Hosted Goggles
 
-Hosted goggles work **only with `search.js`** via the `goggles_id` API parameter. The LLM Context API silently ignores them — use `--preset` instead.
+Hosted goggles work with both `llm-context.js` and `search.js`. Pass the raw GitHub URL to `--goggles`.
 
 ### Brave Official
 
@@ -80,9 +80,11 @@ githubmemory.com, githubplus.com, giters.com, bleepcoder.com, awesomeopensource.
 **General noise** (context-dependent):
 pinterest.com, quora.com, wikihow.com, medium.com (downrank, not discard)
 
-## API Parameter Differences
+## API Parameter Details
 
-| API | Inline rules | Hosted goggle URLs |
-|-----|-------------|-------------------|
-| LLM Context (`llm-context.js`) | `goggles` param ✅ | Not supported ❌ |
-| Web Search (`search.js`) | `goggles` param ✅ | `goggles_id` param ✅ |
+| API | Inline rules | Hosted goggle URLs | Param name |
+|-----|-------------|-------------------|------------|
+| LLM Context (`llm-context.js`) | ✅ | ✅ | `goggles` (both) |
+| Web Search (`search.js`) | ✅ | ✅ | `goggles` (inline) / `goggles_id` (URL) |
+
+Note: The LLM Context API uses `goggles` for both inline rules and hosted URLs. The Web Search API uses separate params: `goggles` for inline, `goggles_id` for hosted URLs. Our `search.js` auto-detects which to use.
