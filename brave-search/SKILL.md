@@ -69,8 +69,7 @@ Single API call that searches the web AND returns pre-extracted content optimize
 | Wildcard | `/api/*/v2$boost=3` | Match with `*` (max 2 wildcards) |
 | Left anchor | `\|https://docs.$boost=3` | URLs starting with prefix |
 | Right anchor | `.pdf\|$boost=2` | URLs ending with suffix |
-| Title match | `tutorial$intitle,$boost=2` | Match in page title |
-| URL match | `docs$inurl,$boost=2` | Match in URL |
+| Caret (separator) | `/api^$boost=3` | Match followed by separator or end-of-URL |
 
 #### Key Pattern: Allow-List with `$discard`
 
@@ -99,7 +98,7 @@ Registered goggles hosted on GitHub — pass the URL directly. Use these for bro
 # Boost 6,238 domains popular on Hacker News — great for tech/research
 {baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/hacker_news.goggle'
 
-# Boost 1,465 tech blog domains
+# Boost 1,295 tech blog domains
 {baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/tech_blogs.goggle'
 
 # Remove all Pinterest domains
@@ -112,7 +111,7 @@ Registered goggles hosted on GitHub — pass the URL directly. Use these for bro
 # Boost 45 official documentation sites (Python, Rust, JS, Go, etc.)
 {baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/banana-boost/banana-boost/master/boost-official-docs.goggle'
 
-# Boost 7,835 curated quality domains (broad quality filter)
+# Boost 7,468 curated quality domains (broad quality filter)
 {baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/banana-boost/banana-boost/master/banana-boost.goggle'
 
 # Boost 3,896 infosec/netsec community domains (from r/netsec signals)
@@ -127,7 +126,7 @@ Registered goggles hosted on GitHub — pass the URL directly. Use these for bro
 | Tech research / general | `hacker_news` (boost quality tech domains) |
 | Official docs lookup | `boost-official-docs` (boost 45 doc sites) |
 | Security / infosec | `netsec` (boost r/netsec community) |
-| Broad quality improvement | `banana-boost` (7,835 curated domains) |
+| Broad quality improvement | `banana-boost` (7,468 curated domains) |
 | Image-heavy / design | `no_pinterest` (remove Pinterest noise) |
 
 ### Inline Goggles Recipes
@@ -170,11 +169,11 @@ For queries polluted by Pinterest, social media, or Q&A sites:
 
 ### Known SEO Spam Domains (for agent reference)
 
-**Programming copycats** (always safe to discard for technical queries):
-w3schools.com, geeksforgeeks.org, tutorialspoint.com, javatpoint.com, programiz.com, educba.com, codegrepper.com, newbedev.com, 9to5answer.com, programcreek.com, appsloveworld.com, solveforum.com
+**Programming SEO farms** (safe to discard/downrank for technical queries — not in Brave's copycats_removal.goggle, which targets translation scrapers):
+w3schools.com, geeksforgeeks.org, tutorialspoint.com, javatpoint.com, programiz.com, educba.com, codegrepper.com, programcreek.com, 9to5answer.com, appsloveworld.com, solveforum.com
 
-**GitHub/SO scrapers** (always safe to discard):
-githubmemory.com, githubplus.com, giters.com, bleepcoder.com, awesomeopensource.com, opensourcelibs.com, reposhub.com, geekrepos.com, stackoom.com, coder.social, issuehint.com
+**GitHub/SO scrapers** (always safe to discard — all in Brave's copycats_removal.goggle except where noted):
+githubmemory.com, githubplus.com, giters.com, bleepcoder.com, awesomeopensource.com, opensourcelibs.com, reposhub.com, stackoom.com, geekrepos.com*, coder.social*, issuehint.com* (*not in copycats_removal but confirmed scrapers)
 
 **General noise** (discard/downrank based on context):
 pinterest.com, quora.com, wikihow.com, medium.com (downrank, not discard — occasionally has quality content)
