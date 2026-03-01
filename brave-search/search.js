@@ -34,15 +34,24 @@ if (freshnessIndex !== -1 && args[freshnessIndex + 1]) {
 	args.splice(freshnessIndex, 2);
 }
 
+// Parse goggles option
+let goggles = null;
+const gogglesIndex = args.indexOf("--goggles");
+if (gogglesIndex !== -1 && args[gogglesIndex + 1]) {
+	goggles = args[gogglesIndex + 1];
+	args.splice(gogglesIndex, 2);
+}
+
 const query = args.join(" ");
 
 if (!query) {
-	console.log("Usage: search.js <query> [-n <num>] [--content] [--country <code>] [--freshness <period>]");
+	console.log("Usage: search.js <query> [-n <num>] [--content] [--country <code>] [--freshness <period>] [--goggles <url|rules>]");
 	console.log("\nOptions:");
 	console.log("  -n <num>              Number of results (default: 5, max: 20)");
 	console.log("  --content             Fetch readable content as markdown");
 	console.log("  --country <code>      Country code for results (default: US)");
 	console.log("  --freshness <period>  Filter by time: pd (day), pw (week), pm (month), py (year)");
+	console.log("  --goggles <url|rules> Hosted goggle URL or inline re-ranking rules");
 	console.log("\nEnvironment:");
 	console.log("  BRAVE_API_KEY         Required. Your Brave Search API key.");
 	console.log("\nExamples:");
@@ -60,7 +69,7 @@ if (!apiKey) {
 	process.exit(1);
 }
 
-async function fetchBraveResults(query, numResults, country, freshness) {
+async function fetchBraveResults(query, numResults, country, freshness, goggles) {
 	const params = new URLSearchParams({
 		q: query,
 		count: Math.min(numResults, 20).toString(),
@@ -70,6 +79,16 @@ async function fetchBraveResults(query, numResults, country, freshness) {
 
 	if (freshness) {
 		params.append("freshness", freshness);
+	}
+
+	if (goggles) {
+		if (goggles.startsWith("http")) {
+			// Hosted goggle URL — use goggles_id param
+			params.append("goggles_id", goggles);
+		} else {
+			// Inline rules
+			params.append("goggles", goggles.replace(/\\n/g, "\n"));
+		}
 	}
 
 	const url = `https://api.search.brave.com/res/v1/web/search?${params.toString()}`;
@@ -168,7 +187,7 @@ async function fetchPageContent(url) {
 
 // Main
 try {
-	const results = await fetchBraveResults(query, numResults, country, freshness);
+	const results = await fetchBraveResults(query, numResults, country, freshness, goggles);
 
 	if (results.length === 0) {
 		console.error("No results found.");

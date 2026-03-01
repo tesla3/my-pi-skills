@@ -1,5 +1,45 @@
 #!/usr/bin/env node
 
+const PRESETS = {
+	code: [
+		"$discard,site=w3schools.com",
+		"$discard,site=geeksforgeeks.org",
+		"$discard,site=tutorialspoint.com",
+		"$discard,site=javatpoint.com",
+		"$discard,site=programiz.com",
+		"$discard,site=educba.com",
+		"$discard,site=codegrepper.com",
+		"$discard,site=programcreek.com",
+		"$boost=3,site=stackoverflow.com",
+		"/docs/$boost=2",
+	].join("\n"),
+	research: [
+		"$boost=5,site=arxiv.org",
+		"$boost=3,site=dl.acm.org",
+		"$boost=3,site=news.ycombinator.com",
+		"$boost=2,site=reddit.com",
+		"$boost=2,site=lobste.rs",
+		"$downrank=3,site=medium.com",
+		"$discard,site=geeksforgeeks.org",
+		"$discard,site=w3schools.com",
+	].join("\n"),
+	docs: [
+		"$discard",
+		"$boost=5,site=docs.python.org",
+		"$boost=5,site=developer.mozilla.org",
+		"$boost=5,site=docs.rust-lang.org",
+		"$boost=5,site=docs.rs",
+		"$boost=5,site=go.dev",
+		"$boost=5,site=typescriptlang.org",
+		"$boost=5,site=nodejs.org",
+		"$boost=3,site=realpython.com",
+		"$boost=1,site=stackoverflow.com",
+		"$boost=1,site=github.com",
+	].join("\n"),
+};
+
+const PRESET_NAMES = Object.keys(PRESETS);
+
 const args = process.argv.slice(2);
 
 // Parse options
@@ -37,6 +77,7 @@ if (countryVal) country = countryVal.toUpperCase();
 
 freshness = extractOpt("--freshness");
 
+const preset = extractOpt("--preset");
 const goggles = extractOpt("--goggles");
 
 const query = args.join(" ");
@@ -46,26 +87,51 @@ if (!query) {
 	console.log("\nFetches search results with pre-extracted content optimized for LLMs.");
 	console.log("Single API call — no separate content fetching needed.\n");
 	console.log("Options:");
-	console.log("  --tokens <num>      Max tokens in response (default: 8192, max: 32768)");
+	console.log("  --tokens <num>      Max tokens in response (default: 8192, min: 1024, max: 32768)");
 	console.log("  --urls <num>        Max URLs to include (default: 20, max: 50)");
 	console.log("  --count <num>       Search results to consider (default: 20, max: 50)");
 	console.log("  --threshold <mode>  Relevance filter: strict|balanced|lenient|disabled (default: balanced)");
 	console.log("  --country <code>    Two-letter country code (default: US)");
 	console.log("  --freshness <p>     Filter by time: pd (day), pw (week), pm (month), py (year)");
-	console.log("  --goggles <rules>   Custom re-ranking rules (newline-separated)");
-	console.log("                      $boost=N,site=domain.com  — boost domain (N=1-10)");
-	console.log("                      $downrank=N,site=domain.com — lower ranking");
-	console.log("                      $discard,site=domain.com — remove domain");
-	console.log("                      $discard (alone) — discard all not explicitly boosted");
+	console.log("  --preset <name>     Built-in goggles: code, research, docs");
+	console.log("  --goggles <rules>   Custom inline re-ranking rules (newline-separated)");
 	console.log("\nPresets:");
-	console.log('  Quick fact:    llm-context.js "query" --tokens 2048 --urls 3');
-	console.log('  Standard:      llm-context.js "query"');
-	console.log('  Deep research: llm-context.js "query" --tokens 16384 --urls 30 --count 50');
-	console.log('  Docs only:    llm-context.js "query" --goggles \'$discard\\n$boost=5,site=docs.python.org\'');
-	console.log('  No spam:      llm-context.js "query" --goggles \'$discard,site=w3schools.com\'');
+	console.log("  code      Discard SEO farms (w3schools, geeksforgeeks, etc.), boost SO + /docs/");
+	console.log("  research  Boost arxiv, ACM, HN, lobste.rs; downrank medium; discard SEO farms");
+	console.log("  docs      Allow-list: ONLY official docs (Python, MDN, Rust, Go, TS, Node) + SO");
+	console.log("\nExamples:");
+	console.log('  llm-context.js "python asyncio"');
+	console.log('  llm-context.js "python asyncio" --preset code');
+	console.log('  llm-context.js "transformer attention" --preset research --tokens 16384');
+	console.log('  llm-context.js "fetch API" --preset docs');
+	console.log('  llm-context.js "query" --goggles \'$discard,site=pinterest.com\'');
 	console.log("\nEnvironment:");
 	console.log("  BRAVE_API_KEY    Required. Your Brave Search API key.");
 	process.exit(1);
+}
+
+if (preset && goggles) {
+	console.error("Error: --preset and --goggles cannot be used together.");
+	process.exit(1);
+}
+
+if (preset && !PRESETS[preset]) {
+	console.error(`Error: Unknown preset '${preset}'. Available: ${PRESET_NAMES.join(", ")}`);
+	process.exit(1);
+}
+
+// Resolve goggles: preset > custom > none
+let resolvedGoggles = null;
+if (preset) {
+	resolvedGoggles = PRESETS[preset];
+} else if (goggles) {
+	if (goggles.startsWith("http")) {
+		console.error("Error: The LLM Context API does not support hosted goggle URLs.");
+		console.error("Use --preset for built-in filters, or --goggles with inline rules.");
+		console.error("Hosted goggles only work with search.js (web search API).");
+		process.exit(1);
+	}
+	resolvedGoggles = goggles.replace(/\\n/g, "\n");
 }
 
 const apiKey = process.env.BRAVE_API_KEY;
@@ -89,9 +155,8 @@ try {
 		params.append("freshness", freshness);
 	}
 
-	if (goggles) {
-		// Replace literal \n with actual newlines for shell convenience
-		params.append("goggles", goggles.replace(/\\n/g, "\n"));
+	if (resolvedGoggles) {
+		params.append("goggles", resolvedGoggles);
 	}
 
 	const url = `https://api.search.brave.com/res/v1/llm/context?${params.toString()}`;

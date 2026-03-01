@@ -5,218 +5,80 @@ description: Web search and content extraction via Brave Search API. Use for sea
 
 # Brave Search
 
-Web search and content extraction using the official Brave Search API. No browser required.
+## Which Tool
 
-## Setup
+| Need | Tool |
+|------|------|
+| Search + read content (default) | `llm-context.js` |
+| Just URLs and snippets | `search.js` |
+| Fetch a specific known URL | `content.js` |
 
-Requires a Brave Search API account. Plans start at $5/1k requests with $5 in free monthly credits (~1,000 queries). A credit card is required.
+## LLM Context (Default)
 
-1. Create an account at https://api-dashboard.search.brave.com/register
-2. Subscribe to a Search plan
-3. Create an API key for the subscription
-4. Add to your shell profile (`~/.profile` or `~/.zprofile` for zsh):
-   ```bash
-   export BRAVE_API_KEY="your-api-key-here"
-   ```
-5. Install dependencies (run once):
-   ```bash
-   cd {baseDir}
-   npm install
-   ```
-
-## LLM Context (Recommended for Agent Use)
-
-Single API call that searches the web AND returns pre-extracted content optimized for LLM consumption. No separate content fetching needed. Use this instead of `search.js --content` for most agent tasks.
+Single API call — searches the web AND returns pre-extracted content optimized for LLMs.
 
 ```bash
-{baseDir}/llm-context.js "query"                              # Standard (8K tokens, 20 URLs)
-{baseDir}/llm-context.js "query" --tokens 2048 --urls 3       # Quick fact lookup
-{baseDir}/llm-context.js "query" --tokens 16384 --urls 30     # Deep research
-{baseDir}/llm-context.js "query" --freshness pw               # Last week only
-{baseDir}/llm-context.js "query" --country DE                 # Results from Germany
-{baseDir}/llm-context.js "query" --goggles '$discard\n$boost=5,site=docs.python.org'  # Docs only
-{baseDir}/llm-context.js "query" --goggles '$discard,site=w3schools.com'              # Exclude domain
+{baseDir}/llm-context.js "query"                                    # Standard
+{baseDir}/llm-context.js "query" --preset code                      # Filter SEO spam for programming
+{baseDir}/llm-context.js "query" --preset research                  # Boost academic/quality sources
+{baseDir}/llm-context.js "query" --preset docs                      # Only official documentation
+{baseDir}/llm-context.js "query" --tokens 16384 --urls 30           # Deep research
+{baseDir}/llm-context.js "query" --freshness pw                     # Last week only
+{baseDir}/llm-context.js "query" --goggles '$discard,site=x.com'    # Custom inline rules
 ```
+
+### Presets
+
+Use `--preset` for common filtering patterns. These are built-in inline goggles rules — tested and working.
+
+| Preset | Effect |
+|--------|--------|
+| `code` | Discard 8 SEO farms (w3schools, geeksforgeeks, tutorialspoint, etc.), boost SO + `/docs/` paths |
+| `research` | Boost arxiv, ACM, HN, lobste.rs; downrank medium; discard SEO farms |
+| `docs` | **Allow-list only**: official docs (Python, MDN, Rust, Go, TS, Node), realpython, SO, GitHub. Everything else discarded. |
 
 ### Options
 
-- `--tokens <num>` - Max tokens in response (default: 8192, max: 32768)
-- `--urls <num>` - Max URLs to include (default: 20, max: 50)
-- `--count <num>` - Search results to consider (default: 20, max: 50)
-- `--threshold <mode>` - Relevance filter: `strict`, `balanced` (default), `lenient`, `disabled`
-- `--country <code>` - Two-letter country code (default: US)
-- `--freshness <period>` - Filter by time: `pd`, `pw`, `pm`, `py`
-- `--goggles <rules>` - Custom re-ranking rules (use `\n` to separate multiple rules). See Goggles Reference below.
+- `--tokens <num>` — Max tokens (default: 8192, min: 1024, max: 32768)
+- `--urls <num>` — Max URLs (default: 20, max: 50)
+- `--count <num>` — Search results to consider (default: 20, max: 50)
+- `--threshold <mode>` — Relevance: `strict`, `balanced` (default), `lenient`, `disabled`
+- `--country <code>` — Two-letter country code (default: US)
+- `--freshness <period>` — `pd` (day), `pw` (week), `pm` (month), `py` (year)
+- `--preset <name>` — Built-in goggles: `code`, `research`, `docs`
+- `--goggles <rules>` — Custom inline rules (use `\n` between rules). Cannot combine with `--preset`.
 
-### Goggles Reference
+### Custom Goggles (inline rules)
 
-#### Actions
-| Action | Effect | Example |
-|--------|--------|---------|
-| `$boost=N` | Boost ranking (N=1-10, multiplicative) | `$boost=5,site=docs.python.org` |
-| `$downrank=N` | Lower ranking (N=1-10) | `$downrank=3,site=w3schools.com` |
-| `$discard` | Completely remove from results | `$discard,site=pinterest.com` |
-
-**`$boost=1`** = keep at natural ranking (no boost). Use with `$discard` to create an allow-list.
-
-**Precedence:** `$discard` > `$boost` > `$downrank`. More specific patterns override less specific.
-
-#### Targeting
-| Target | Syntax | Example |
-|--------|--------|---------|
-| Domain | `$boost=3,site=example.com` | Target a domain |
-| URL pattern | `/docs/$boost=3` | URLs containing `/docs/` |
-| Wildcard | `/api/*/v2$boost=3` | Match with `*` (max 2 wildcards) |
-| Left anchor | `\|https://docs.$boost=3` | URLs starting with prefix |
-| Right anchor | `.pdf\|$boost=2` | URLs ending with suffix |
-| Caret (separator) | `/api^$boost=3` | Match followed by separator or end-of-URL |
-
-#### Key Pattern: Allow-List with `$discard`
-
-The most powerful pattern for focused research. Discard all noise, keep only authoritative sources:
-```
-$discard                              # discard everything by default
-$boost=5,site=docs.python.org        # strongly boost official docs
-$boost=3,site=realpython.com         # boost quality tutorials
-$boost=1,site=stackoverflow.com      # keep at natural ranking (don't discard, don't boost)
-```
-
-#### Practical Limits
-
-Keep inline goggles to **5-15 rules**. URL encoding of many rules can hit HTTP URL length limits. For broad filtering, use `$discard` + targeted `$boost` rather than listing every spam domain.
-
-### Pre-Built Hosted Goggles
-
-Registered goggles hosted on GitHub — pass the URL directly. Use these for broad filtering (100+ rules) that can't fit inline. Only registered goggles work; arbitrary URLs are silently ignored. Cannot combine a hosted URL with inline rules — use one or the other.
-
-#### Brave Official
+For per-query customization beyond presets. See [goggles-reference.md](goggles-reference.md) for full syntax and domain lists.
 
 ```bash
-# Remove 189 StackOverflow/GitHub copycat/scraper sites — USE FOR ALL PROGRAMMING QUERIES
-{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/copycats_removal.goggle'
+# Discard specific domains
+{baseDir}/llm-context.js "query" --goggles '$discard,site=pinterest.com\n$discard,site=quora.com'
 
-# Boost 6,238 domains popular on Hacker News — great for tech/research
-{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/hacker_news.goggle'
-
-# Boost 1,295 tech blog domains
-{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/tech_blogs.goggle'
-
-# Remove all Pinterest domains
-{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/no_pinterest.goggle'
+# Allow-list pattern (discard everything, then whitelist)
+{baseDir}/llm-context.js "query" --goggles '$discard\n$boost=5,site=arxiv.org\n$boost=1,site=github.com'
 ```
 
-#### Community (registered & tested)
+**Key rules:** `$boost=N,site=domain` (N=1-10), `$downrank=N,site=domain`, `$discard,site=domain`, `$discard` (discard all unmatched). Precedence: discard > boost > downrank.
 
-```bash
-# Boost 45 official documentation sites (Python, Rust, JS, Go, etc.)
-{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/banana-boost/banana-boost/master/boost-official-docs.goggle'
-
-# Boost 7,468 curated quality domains (broad quality filter)
-{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/banana-boost/banana-boost/master/banana-boost.goggle'
-
-# Boost 3,896 infosec/netsec community domains (from r/netsec signals)
-{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/forcesunseen/netsec-goggle/master/netsec.goggle'
-```
-
-#### Which Hosted Goggle to Use
-
-| Query type | Recommended hosted goggle |
-|-----------|--------------------------|
-| Programming / code | `copycats_removal` (discard scrapers) |
-| Tech research / general | `hacker_news` (boost quality tech domains) |
-| Official docs lookup | `boost-official-docs` (boost 45 doc sites) |
-| Security / infosec | `netsec` (boost r/netsec community) |
-| Broad quality improvement | `banana-boost` (7,468 curated domains) |
-| Image-heavy / design | `no_pinterest` (remove Pinterest noise) |
-
-### Inline Goggles Recipes
-
-Use `--goggles` with inline rules for per-query customization. Combine rules with `\n`.
-
-#### Programming Search (recommended default for code queries)
-
-Discard the worst copycat/SEO farms, boost official sources:
-```bash
-{baseDir}/llm-context.js "python asyncio" --goggles '$discard,site=w3schools.com\n$discard,site=geeksforgeeks.org\n$discard,site=tutorialspoint.com\n$discard,site=javatpoint.com\n$discard,site=programiz.com\n$discard,site=educba.com\n$boost=3,site=stackoverflow.com\n/docs/$boost=2'
-```
-
-#### Official Docs Only (allow-list)
-
-When you only want authoritative sources — discard everything else:
-```bash
-{baseDir}/llm-context.js "python asyncio" --goggles '$discard\n$boost=5,site=docs.python.org\n$boost=3,site=realpython.com\n$boost=1,site=stackoverflow.com'
-```
-
-#### Research / Academic
-
-Boost papers and technical discussion, downrank SEO:
-```bash
-{baseDir}/llm-context.js "transformer attention mechanisms" --goggles '$boost=5,site=arxiv.org\n$boost=3,site=news.ycombinator.com\n$boost=2,site=reddit.com\n$boost=3,site=dl.acm.org\n$downrank=3,site=medium.com\n$discard,site=geeksforgeeks.org'
-```
-
-#### GitHub / Source Code Focused
-
-```bash
-{baseDir}/llm-context.js "query" --goggles '$boost=5,site=github.com\n$boost=3,site=stackoverflow.com\n$boost=2,site=docs.rs\n$discard,site=githubmemory.com\n$discard,site=githubplus.com\n$discard,site=giters.com\n$discard,site=bleepcoder.com'
-```
-
-#### No Pinterest / No Social Noise
-
-For queries polluted by Pinterest, social media, or Q&A sites:
-```bash
-{baseDir}/llm-context.js "query" --goggles '$discard,site=pinterest.com\n$discard,site=quora.com\n$discard,site=wikihow.com\n$discard,site=linkedin.com'
-```
-
-### Known SEO Spam Domains (for agent reference)
-
-**Programming SEO farms** (safe to discard/downrank for technical queries — not in Brave's copycats_removal.goggle, which targets translation scrapers):
-w3schools.com, geeksforgeeks.org, tutorialspoint.com, javatpoint.com, programiz.com, educba.com, codegrepper.com, programcreek.com, 9to5answer.com, appsloveworld.com, solveforum.com
-
-**GitHub/SO scrapers** (always safe to discard — all in Brave's copycats_removal.goggle except where noted):
-githubmemory.com, githubplus.com, giters.com, bleepcoder.com, awesomeopensource.com, opensourcelibs.com, reposhub.com, stackoom.com, geekrepos.com*, coder.social*, issuehint.com* (*not in copycats_removal but confirmed scrapers)
-
-**General noise** (discard/downrank based on context):
-pinterest.com, quora.com, wikihow.com, medium.com (downrank, not discard — occasionally has quality content)
-
-### When to Apply Goggles
-
-- **Programming queries:** Always consider discarding copycats + boosting official docs
-- **Research/analysis:** Boost arxiv, HN, Reddit; downrank medium.com, SEO farms
-- **Quick facts:** Usually don't need goggles — default results are fine
-- **Product/review queries:** Downrank media conglomerate listicles (investopedia.com, lifewire.com, thespruce.com)
-- **Prefer `$downrank` over `$discard`** unless the domain is a known scraper/copycat — over-filtering narrows results too aggressively
-
-### When to Use LLM Context vs Search
-
-| Use case | Tool |
-|----------|------|
-| Need content for analysis/research | `llm-context.js` |
-| Just need URLs and snippets | `search.js` |
-| Fetch a specific known URL | `content.js` |
+**Note:** The LLM Context API only supports inline rules. Hosted goggle URLs are silently ignored. Use `search.js` with `--goggles <url>` if you need hosted goggles.
 
 ## Search
 
+Returns URLs, snippets, and extra snippets. Supports hosted goggles via `--goggles <url>`.
+
 ```bash
-{baseDir}/search.js "query"                         # Basic search (5 results)
-{baseDir}/search.js "query" -n 10                   # More results (max 20)
-{baseDir}/search.js "query" --content               # Include page content as markdown
-{baseDir}/search.js "query" --freshness pw          # Results from last week
-{baseDir}/search.js "query" --freshness 2024-01-01to2024-06-30  # Date range
-{baseDir}/search.js "query" --country DE            # Results from Germany
-{baseDir}/search.js "query" -n 3 --content          # Combined options
+{baseDir}/search.js "query"                          # 5 results
+{baseDir}/search.js "query" -n 10                    # More results (max 20)
+{baseDir}/search.js "query" --content                # Include page content as markdown
+{baseDir}/search.js "query" --freshness pw           # Last week
+{baseDir}/search.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/copycats_removal.goggle'
 ```
 
-### Options
+Options: `-n <num>`, `--content`, `--country <code>`, `--freshness <period>`, `--goggles <url|rules>`
 
-- `-n <num>` - Number of results (default: 5, max: 20)
-- `--content` - Fetch and include page content as markdown (consider `llm-context.js` instead)
-- `--country <code>` - Two-letter country code (default: US)
-- `--freshness <period>` - Filter by time:
-  - `pd` - Past day (24 hours)
-  - `pw` - Past week
-  - `pm` - Past month
-  - `py` - Past year
-  - `YYYY-MM-DDtoYYYY-MM-DD` - Custom date range
+Hosted goggles (pass URL to `--goggles`) only work with `search.js`, not `llm-context.js`. See [goggles-reference.md](goggles-reference.md) for available hosted goggles.
 
 ## Extract Page Content
 
@@ -224,25 +86,11 @@ pinterest.com, quora.com, wikihow.com, medium.com (downrank, not discard — occ
 {baseDir}/content.js https://example.com/article
 ```
 
-Fetches a specific URL and extracts readable content as markdown. Use when you already know the URL.
+## Setup
 
-## Output Format
+Requires `BRAVE_API_KEY` env var. Get one at https://api-dashboard.search.brave.com — $5/1k requests, $5 free monthly credits.
 
-All tools produce similar output:
-
+```bash
+export BRAVE_API_KEY="your-key"    # Add to ~/.zprofile
+cd {baseDir} && npm install         # Run once
 ```
---- Result 1 ---
-Title: Page Title
-URL: https://example.com/page
-Age: 2 days ago
-Content: Extracted page content...
-
---- Result 2 ---
-...
-```
-
-## When to Use
-
-- **`llm-context.js`** - Default for agent search+read tasks (single call, LLM-optimized content)
-- **`search.js`** - When you only need URLs/snippets, or need `--content` with Readability extraction
-- **`content.js`** - Fetching a specific known URL
