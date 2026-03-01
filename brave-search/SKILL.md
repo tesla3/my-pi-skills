@@ -86,9 +86,28 @@ $boost=1,site=stackoverflow.com      # keep at natural ranking (don't discard, d
 
 Keep inline goggles to **5-15 rules**. URL encoding of many rules can hit HTTP URL length limits. For broad filtering, use `$discard` + targeted `$boost` rather than listing every spam domain.
 
-### Goggles Recipes
+### Pre-Built Hosted Goggles
 
-Use `--goggles` to control result quality. Combine rules with `\n`.
+These are Brave's official goggles, already registered and ready to use. Pass the URL directly:
+
+```bash
+# Remove ~170 StackOverflow/GitHub copycat/scraper sites
+{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/copycats_removal.goggle'
+
+# Remove all Pinterest domains
+{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/no_pinterest.goggle'
+
+# Boost ~3,000 domains popular on Hacker News
+{baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/hacker_news.goggle'
+```
+
+Use hosted goggles when you need broad filtering (100+ rules). They overcome the inline URL length limit. Only goggles registered with Brave work — arbitrary URLs are silently ignored.
+
+**Note:** You cannot combine a hosted URL with inline rules in the same `--goggles` parameter. Use either a hosted URL OR inline rules, not both.
+
+### Inline Goggles Recipes
+
+Use `--goggles` with inline rules for per-query customization. Combine rules with `\n`.
 
 #### Programming Search (recommended default for code queries)
 
