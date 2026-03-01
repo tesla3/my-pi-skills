@@ -11,36 +11,33 @@ const contentIndex = args.indexOf("--content");
 const fetchContent = contentIndex !== -1;
 if (fetchContent) args.splice(contentIndex, 1);
 
+function extractOpt(flag) {
+	const i = args.indexOf(flag);
+	if (i !== -1 && args[i + 1] && !args[i + 1].startsWith("--")) {
+		const val = args[i + 1];
+		args.splice(i, 2);
+		return val;
+	}
+	if (i !== -1 && (!args[i + 1] || args[i + 1].startsWith("--"))) {
+		console.error(`Error: ${flag} requires a value.`);
+		process.exit(1);
+	}
+	return null;
+}
+
 let numResults = 5;
-const nIndex = args.indexOf("-n");
-if (nIndex !== -1 && args[nIndex + 1]) {
-	numResults = parseInt(args[nIndex + 1], 10);
-	args.splice(nIndex, 2);
-}
+const nVal = extractOpt("-n");
+if (nVal) numResults = parseInt(nVal, 10);
 
-// Parse country option
 let country = "US";
-const countryIndex = args.indexOf("--country");
-if (countryIndex !== -1 && args[countryIndex + 1]) {
-	country = args[countryIndex + 1].toUpperCase();
-	args.splice(countryIndex, 2);
-}
+const countryVal = extractOpt("--country");
+if (countryVal) country = countryVal.toUpperCase();
 
-// Parse freshness option
 let freshness = null;
-const freshnessIndex = args.indexOf("--freshness");
-if (freshnessIndex !== -1 && args[freshnessIndex + 1]) {
-	freshness = args[freshnessIndex + 1];
-	args.splice(freshnessIndex, 2);
-}
+freshness = extractOpt("--freshness");
 
-// Parse goggles option
 let goggles = null;
-const gogglesIndex = args.indexOf("--goggles");
-if (gogglesIndex !== -1 && args[gogglesIndex + 1]) {
-	goggles = args[gogglesIndex + 1];
-	args.splice(gogglesIndex, 2);
-}
+goggles = extractOpt("--goggles");
 
 const query = args.join(" ");
 

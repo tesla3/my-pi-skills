@@ -56,7 +56,7 @@ For per-query customization beyond presets. See [goggles-reference.md](goggles-r
 # Hosted goggle (189 copycat scrapers removed)
 {baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/copycats_removal.goggle'
 
-# Hosted goggle (boost 6,238 HN-popular domains)
+# Hosted goggle (allow-list: only HN-popular domains, everything else discarded)
 {baseDir}/llm-context.js "query" --goggles 'https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/hacker_news.goggle'
 
 # Inline: discard specific domains

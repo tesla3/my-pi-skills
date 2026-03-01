@@ -52,10 +52,14 @@ let freshness = null;
 
 function extractOpt(flag) {
 	const i = args.indexOf(flag);
-	if (i !== -1 && args[i + 1]) {
+	if (i !== -1 && args[i + 1] && !args[i + 1].startsWith("--")) {
 		const val = args[i + 1];
 		args.splice(i, 2);
 		return val;
+	}
+	if (i !== -1 && (!args[i + 1] || args[i + 1].startsWith("--"))) {
+		console.error(`Error: ${flag} requires a value.`);
+		process.exit(1);
 	}
 	return null;
 }

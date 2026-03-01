@@ -50,17 +50,17 @@ Hosted goggles work with both `llm-context.js` and `search.js`. Pass the raw Git
 | Goggle | Rules | Effect |
 |--------|-------|--------|
 | [copycats_removal](https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/copycats_removal.goggle) | 189 | Discard SO/GitHub translation scrapers |
-| [hacker_news](https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/hacker_news.goggle) | 6,238 | Boost domains popular on HN |
-| [tech_blogs](https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/tech_blogs.goggle) | 1,295 | Boost tech blog domains |
-| [no_pinterest](https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/no_pinterest.goggle) | — | Remove all Pinterest domains |
+| [hacker_news](https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/hacker_news.goggle) | 6,239 | **Allow-list** — only HN-popular domains (global `$discard` + 6,238 boosts) |
+| [tech_blogs](https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/tech_blogs.goggle) | 1,469 | **Allow-list** — only tech blogs (global `$discard` + boosts + 172 URL patterns) |
+| [no_pinterest](https://raw.githubusercontent.com/brave/goggles-quickstart/main/goggles/no_pinterest.goggle) | 22 | Remove all Pinterest domains |
 
 ### Community
 
 | Goggle | Rules | Effect |
 |--------|-------|--------|
 | [boost-official-docs](https://raw.githubusercontent.com/banana-boost/banana-boost/master/boost-official-docs.goggle) | 45 | Boost official doc sites (Python, Rust, JS, Go, etc.) |
-| [banana-boost](https://raw.githubusercontent.com/banana-boost/banana-boost/master/banana-boost.goggle) | 7,468 | Broad quality domain filter |
-| [netsec](https://raw.githubusercontent.com/forcesunseen/netsec-goggle/master/netsec.goggle) | 3,896 | Boost infosec/netsec community domains |
+| [banana-boost](https://raw.githubusercontent.com/banana-boost/banana-boost/master/banana-boost.goggle) | 7,838 | Boost quality domains + discard 190 copycat/spam sites (embeds copycats_removal) |
+| [netsec](https://raw.githubusercontent.com/forcesunseen/netsec-goggle/master/netsec.goggle) | 3,903 | Boost infosec/netsec community domains |
 
 Usage with search.js:
 ```bash
